@@ -11,7 +11,7 @@ def check_subdomains(base_domain, wordlist_path):
         try:
             response = requests.get(sub_domain, timeout=3)
             response.raise_for_status()
-            print("Valid domain:", sub_domain)
+            print(colored("Valid domain:", "green"), colored(sub_domain, "cyan"))
         except requests.RequestException:
             pass
 
@@ -20,7 +20,7 @@ def check_directory(sub, directory):
     try:
         response = requests.get(full_url)
         response.raise_for_status()
-        print("Valid directory:", full_url)
+        print(colored("Valid directory:", "green"), colored(full_url, "cyan"))
     except requests.exceptions.RequestException:
         pass
 
