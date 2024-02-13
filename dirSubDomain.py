@@ -2,53 +2,35 @@ import requests
 import pyfiglet
 from termcolor import colored
 
-def check_subdomains(base_domain, wordlist_path):
+def check_mode(base_domain, wordlist_path, is_subdomain):
     with open(wordlist_path, 'r') as file:
-        sub_list = file.read().splitlines()
+        urls = file.read().splitlines()
 
-    for sub in sub_list:
-        sub_domain = f"http://{sub}.{base_domain}"
+    for url in urls:
+        full_url = f"http://{url}.{base_domain}" if is_subdomain else f"http://{base_domain}/{url}"
         try:
-            response = requests.get(sub_domain, timeout=3)
-            response.raise_for_status()
-            print(colored("Valid domain:", "green"), colored(sub_domain, "cyan"))
+            response = requests.get(full_url, timeout=3)
+            if response.ok:
+                print(colored("Valid domain:" if is_subdomain else "Valid directory:", "green"), colored(full_url, "cyan"))
         except requests.RequestException:
             pass
 
-def check_directory(sub, directory):
-    full_url = f"http://{sub}/{directory}"
-    try:
-        response = requests.get(full_url)
-        response.raise_for_status()
-        print(colored("Valid directory:", "green"), colored(full_url, "cyan"))
-    except requests.exceptions.RequestException:
-        pass
-
-def print_welcome_message():
-    ascii_art = pyfiglet.figlet_format("dirSubDomain tool", font="slant")
-    print(colored(ascii_art, "red"))
+def welcome_message():
+    msg = pyfiglet.figlet_format("dirSubDomain tool", font="slant")
+    print(colored(msg, "red"))
 
 def main():
-    print_welcome_message()
+    welcome_message()
     mode = input("Choose mode subdomains[s] or directories[d]: ").lower()
 
     if mode == "s":
         base_domain = input("Your base domain:\n")
         wordlist_path = input("Path to wordlist:\n")
-        check_subdomains(base_domain, wordlist_path)
+        check_mode(base_domain, wordlist_path, True)
     elif mode == "d":
-        url = input("Your URL:\n")
+        base_domain = input("Your domain:\n")
         wordlist_path = input("Path to wordlist:\n")
-
-        try:
-            with open(wordlist_path, "r") as file:
-                directories = file.read().splitlines()
-        except FileNotFoundError:
-            print(f"Error: Wordlist file '{wordlist_path}' not found.")
-            return
-
-        for directory in directories:
-            check_directory(url, directory)
+        check_mode(base_domain, wordlist_path, False)
     else:
         print("Invalid mode. Please choose 'subdomains' or 'directories'.")
 
